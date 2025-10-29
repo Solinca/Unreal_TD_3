@@ -6,6 +6,8 @@ I based this VFX on https://www.artstation.com/artwork/oOl6kL
 
 No asset were added to the project.
 
+
+
 Homemade Materials:
 
 MAT_Circle  -> Simple sphere mask with a particule color
