@@ -1,0 +1,12 @@
+[
+	{
+		"Name": "NewRow",
+		"StaticMesh": "None",
+		"FireRate": 1,
+		"MagSize": 6,
+		"bIsAutomatic": false,
+		"Range": 1000,
+		"Damages": 10,
+		"WeaponName": "None"
+	}
+]

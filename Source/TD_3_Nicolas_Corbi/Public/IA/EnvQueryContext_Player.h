@@ -1,0 +1,14 @@
+#pragma once
+
+#include "CoreMinimal.h"
+#include "EnvironmentQuery/EnvQueryContext.h"
+#include "EnvQueryContext_Player.generated.h"
+
+UCLASS()
+class TD_3_NICOLAS_CORBI_API UEnvQueryContext_Player : public UEnvQueryContext
+{
+	GENERATED_BODY()
+	
+protected:
+	virtual void ProvideContext(FEnvQueryInstance& QueryInstance, FEnvQueryContextData& ContextData) const override;
+};
