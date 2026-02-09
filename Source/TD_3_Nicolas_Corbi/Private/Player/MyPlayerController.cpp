@@ -1,5 +1,6 @@
 #include "Player/MyPlayerController.h"
 #include "Player/MyCharacter.h"
+#include "Global/MyGameInstanceSubsystem.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "Kismet/GameplayStatics.h"
@@ -91,4 +92,11 @@ void AMyPlayerController::SprintEnd(const FInputActionValue& Value)
 void AMyPlayerController::Attack(const FInputActionValue& Value)
 {
 	MyChara->TryAttack();
+}
+
+void AMyPlayerController::DestroySessionOnClient_Implementation()
+{
+	GetGameInstance()->GetSubsystem<UMyGameInstanceSubsystem>()->DestroySession();
+
+	ClientTravel("/Game/Levels/TestNetworkMenu", ETravelType::TRAVEL_Absolute);
 }

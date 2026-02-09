@@ -74,4 +74,8 @@ protected:
 
 	UFUNCTION(BlueprintCallable)
 	void Attack(const FInputActionValue& Value);
+
+public:
+	UFUNCTION(Client, Reliable)
+	void DestroySessionOnClient();
 };
