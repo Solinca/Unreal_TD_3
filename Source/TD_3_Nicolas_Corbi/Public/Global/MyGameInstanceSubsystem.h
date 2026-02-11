@@ -50,6 +50,8 @@ private:
 
 	FDelegateHandle DestroyHandle;
 
+	FDelegateHandle UpdateHandle;
+
 	void OnCreateSessionCompleted(FName SessionName, bool IsSuccessful);
 
 	void OnFindSessionCompleted(bool IsSuccessful);
@@ -58,7 +60,11 @@ private:
 
 	void OnDestroySessionCompleted(FName SessionName, bool IsSuccessful);
 
+	void OnUpdatedSessionSettingsCompleted(FName SessionName, bool IsSuccessful);
+
 	void JoinGameSession(const FOnlineSessionSearchResult& SessionResult);
+
+	void CreateHostBeacon(int32 ListenPort, bool bOverridePort);
 
 protected:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
@@ -75,6 +81,9 @@ public:
 
 	UFUNCTION(Category = "Session")
 	void DestroySession();
+
+	template<typename ValueType>
+	void UpdateCustomSessionSettings(const FName& KeyName, const ValueType& Value, EOnlineDataAdvertisementType::Type InType);
 
 	UPROPERTY(BlueprintAssignable, Category = "Session")
 	FOnFindGameSessionCompleteSignature OnFindGameSessionComplete;

@@ -1,6 +1,9 @@
 #include "Global/MyGameInstanceSubsystem.h"
 #include "Online/OnlineSessionNames.h"
 #include "OnlineSubsystemUtils.h"
+#include "OnlineBeaconHost.h"
+#include "Network/MyOnlineBeaconHostObject.h"
+#include "Network/MyOnlineBeaconClient.h"
 
 void UMyGameInstanceSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
@@ -22,6 +25,16 @@ void UMyGameInstanceSubsystem::OnCreateSessionCompleted(FName SessionName, bool 
 	}
 
 	GetWorld()->ServerTravel("/Game/Levels/TestNetworkGame?Listen");
+
+	/*
+	FTimerHandle UpdateSessionSettingsHandle;
+
+	GetWorld()->GetTimerManager().SetTimer(UpdateSessionSettingsHandle, [this] { UpdateCustomSessionSettings("SESSION_STATE", 1, EOnlineDataAdvertisementType::ViaOnlineService); }, 10, false);
+	*/
+
+	FTimerHandle CreateHostBeaconHandle;
+
+	GetWorld()->GetTimerManager().SetTimer(CreateHostBeaconHandle, [this] { CreateHostBeacon(7787, true); }, 2, false);
 }
 
 void UMyGameInstanceSubsystem::OnFindSessionCompleted(bool IsSuccessful)
@@ -51,6 +64,15 @@ void UMyGameInstanceSubsystem::OnFindSessionCompleted(bool IsSuccessful)
 		FString SessionName;
 
 		Result.Session.SessionSettings.Get("SETTING_SESSIONNAME", SessionName);
+
+		int SessionState;
+
+		Result.Session.SessionSettings.Get("SESSION_STATE", SessionState);
+
+		if (SessionState > 0)
+		{
+			continue;
+		}
 
 		SessionInfo.SessionName = SessionName;
 
@@ -94,6 +116,14 @@ void UMyGameInstanceSubsystem::OnDestroySessionCompleted(FName SessionName, bool
 	if (Session)
 	{
 		Session->ClearOnDestroySessionCompleteDelegate_Handle(DestroyHandle);
+	}
+}
+
+void UMyGameInstanceSubsystem::OnUpdatedSessionSettingsCompleted(FName SessionName, bool IsSuccessful)
+{
+	if (Session)
+	{
+		Session->ClearOnUpdateSessionCompleteDelegate_Handle(UpdateHandle);
 	}
 }
 
@@ -143,6 +173,8 @@ void UMyGameInstanceSubsystem::CreateSession(const FString& SessionName, int32 N
 
 	LastSessionSettings->Set("SETTING_SESSIONNAME", SessionName, EOnlineDataAdvertisementType::ViaOnlineService);
 
+	LastSessionSettings->Set("SESSION_STATE", 0, EOnlineDataAdvertisementType::ViaOnlineService);
+
 	CreateHandle = Session->AddOnCreateSessionCompleteDelegate_Handle(FOnCreateSessionCompleteDelegate::CreateUObject(this, &UMyGameInstanceSubsystem::OnCreateSessionCompleted));
 
 	const ULocalPlayer* LocalPlayer = GetWorld()->GetFirstLocalPlayerFromController();
@@ -184,7 +216,36 @@ void UMyGameInstanceSubsystem::FindSession(int32 MaxSearchResults, bool IsLanQue
 
 void UMyGameInstanceSubsystem::CustomJoinSession(int32 SessionIndex)
 {
-	JoinGameSession(SearchResults[SessionIndex]);
+	const FOnlineSessionSearchResult TempResult = SearchResults[SessionIndex];
+
+	FString ConnectString;
+
+	if (Session->GetResolvedConnectString(TempResult, NAME_BeaconPort, ConnectString))
+	{
+		AMyOnlineBeaconClient* BeaconClient = GetWorld()->SpawnActor<AMyOnlineBeaconClient>();
+
+		FURL Destination = FURL(nullptr, *ConnectString, ETravelType::TRAVEL_Absolute);
+
+		Destination.Port = 7787;
+
+		GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Red, FString::Printf(TEXT("Trying to connect to: %s:%d"), *Destination.Host, Destination.Port));
+
+		BeaconClient->ConnectToServer(Destination);
+
+		BeaconClient->OnRequestValidate.BindLambda([this, TempResult](bool IsValid)
+		{
+			if (IsValid)
+			{
+				JoinGameSession(TempResult);
+			}
+			else
+			{
+				// Display an error via broadcast
+
+				GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Red, "Failed to connect...");
+			}
+		});
+	}
 }
 
 void UMyGameInstanceSubsystem::DestroySession()
@@ -201,5 +262,52 @@ void UMyGameInstanceSubsystem::DestroySession()
 		Session->ClearOnDestroySessionCompleteDelegate_Handle(DestroyHandle);
 
 		return;
+	}
+}
+
+template<typename ValueType>
+inline void UMyGameInstanceSubsystem::UpdateCustomSessionSettings(const FName& KeyName, const ValueType& Value, EOnlineDataAdvertisementType::Type InType)
+{
+	if (!Session.IsValid() || !LastSessionSettings.IsValid())
+	{
+		return;
+	}
+
+	TSharedPtr<FOnlineSessionSettings> UpdatedSessionSettings = MakeShareable(new FOnlineSessionSettings(*LastSessionSettings));
+
+	UpdatedSessionSettings->Set(KeyName, Value, InType);
+
+	UpdateHandle = Session->AddOnUpdateSessionCompleteDelegate_Handle(FOnUpdateSessionCompleteDelegate::CreateUObject(this, &UMyGameInstanceSubsystem::OnUpdatedSessionSettingsCompleted));
+
+	if (!Session->UpdateSession(NAME_GameSession, *UpdatedSessionSettings))
+	{
+		Session->ClearOnUpdateSessionCompleteDelegate_Handle(UpdateHandle);
+
+		return;
+	}
+
+	LastSessionSettings = UpdatedSessionSettings;
+
+	GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Red, "SESSION SETTINGS UPDATED");
+}
+
+void UMyGameInstanceSubsystem::CreateHostBeacon(int32 ListenPort, bool bOverridePort)
+{
+	AOnlineBeaconHost* BeaconHost = GetWorld()->SpawnActor<AOnlineBeaconHost>();
+
+	if (BeaconHost->InitHost())
+	{
+		BeaconHost->PauseBeaconRequests(false);
+
+		if (AMyOnlineBeaconHostObject* HostObject = GetWorld()->SpawnActor<AMyOnlineBeaconHostObject>())
+		{
+			HostObject->ReservedSlots++;
+
+			HostObject->MaxSlots = MaxPlayers;
+
+			BeaconHost->RegisterHost(HostObject);
+
+			GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Red, "HOST BEACON CREATED");
+		}
 	}
 }
