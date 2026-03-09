@@ -11,7 +11,8 @@
 			"AdditionalDependencies": [
 				"AIModule",
 				"Engine",
-				"OnlineSubsystemUtils"
+				"OnlineSubsystemUtils",
+				"DeveloperSettings"
 			]
 		}
 	],
