@@ -4,6 +4,7 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "Kismet/GameplayStatics.h"
+#include "Slate/SMyCompoundWidget.h"
 
 AMyPlayerController::AMyPlayerController()
 {
@@ -13,6 +14,11 @@ AMyPlayerController::AMyPlayerController()
 void AMyPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
+
+	if (GEngine && GEngine->GameViewport)
+	{
+		GEngine->GameViewport->AddViewportWidgetContent(SAssignNew(MySlateWidget, SMyCompoundWidget).GameTitle(INVTEXT("This is my game")));
+	}
 
 	if (!MappingContext)
 	{
@@ -38,9 +44,9 @@ void AMyPlayerController::BeginPlay()
 
 	PlayerCameraManager->ViewPitchMax = 45;
 
-	SetShowMouseCursor(false);
+	SetShowMouseCursor(true);
 
-	SetInputMode(GameOnly);
+	SetInputMode(FInputModeUIOnly{});
 }
 
 void AMyPlayerController::SetupInputComponent()

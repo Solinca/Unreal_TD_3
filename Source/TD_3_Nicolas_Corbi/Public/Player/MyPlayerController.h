@@ -29,6 +29,8 @@ class TD_3_NICOLAS_CORBI_API AMyPlayerController : public APlayerController
 private:
 	TObjectPtr<class AMyCharacter> MyChara = nullptr;
 
+	TSharedPtr<class SMyCompoundWidget> MySlateWidget = nullptr;
+
 	FInputModeGameOnly GameOnly;
 
 	float DefaultMaxSpeed;

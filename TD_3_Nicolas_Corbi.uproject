@@ -12,7 +12,10 @@
 				"AIModule",
 				"Engine",
 				"OnlineSubsystemUtils",
-				"DeveloperSettings"
+				"DeveloperSettings",
+				"Slate",
+				"SlateCore",
+				"UMG"
 			]
 		}
 	],
