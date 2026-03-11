@@ -22,6 +22,12 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Text")
 	FText Label;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Style")
+	FButtonStyle ButtonStyle;
+
 	UFUNCTION(BlueprintCallable)
 	void SetLabel(FText NewLabel);
+
+	UFUNCTION(BlueprintCallable)
+	void SetButtonStyle(FButtonStyle NewStyle);
 };

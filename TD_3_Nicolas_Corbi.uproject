@@ -17,6 +17,14 @@
 				"SlateCore",
 				"UMG"
 			]
+		},
+		{
+			"Name": "MyModule",
+			"Type": "Runtime",
+			"LoadingPhase": "Default",
+			"AdditionalDependencies": [
+				"Engine"
+			]
 		}
 	],
 	"Plugins": [

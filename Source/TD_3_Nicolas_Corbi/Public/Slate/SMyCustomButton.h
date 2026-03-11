@@ -8,6 +8,8 @@ class TD_3_NICOLAS_CORBI_API SMyCustomButton : public SCompoundWidget
 private:
 	FText Label;
 
+	FButtonStyle ButtonStyle;
+
 public:
 	SLATE_BEGIN_ARGS(SMyCustomButton)
 	{
@@ -20,6 +22,7 @@ public:
 	SLATE_ARGUMENT(FText, ButtonText)
 	SLATE_ARGUMENT(FLinearColor, FontColor)
 	SLATE_ARGUMENT(bool, IsBold)
+	SLATE_ARGUMENT(FButtonStyle, ButtonStyle)
 
 	SLATE_EVENT(FOnClicked, OnButtonClicked)
 
@@ -30,5 +33,10 @@ public:
 	void SetLabel(FText NewText)
 	{
 		Label = NewText;
+	}
+
+	void SetButtonStyle(FButtonStyle NewStyle)
+	{
+		ButtonStyle = NewStyle;
 	}
 };

@@ -1,0 +1,16 @@
+#pragma once
+
+#include "CoreMinimal.h"
+#include "Modules/ModuleInterface.h"
+
+class FMyModule : public FDefaultModuleImpl
+{
+public:
+	virtual void StartupModule() override;
+
+	virtual void ShutdownModule() override;
+
+	void OnPostInit();
+
+	void OnDataPropertyChanged(UObject* Object, FPropertyChangedEvent& Event);
+};
